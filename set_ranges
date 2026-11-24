@@ -1,0 +1,105 @@
+#include <Wire.h>
+
+byte a;
+byte acc;
+byte gyo;
+void setup() {
+
+
+  Wire.begin(21, 22);
+  Serial.begin(115200);
+
+  // Write section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.write(0x01);
+
+  byte error = Wire.endTransmission();
+
+  if (error != 0) {
+    Serial.println("I2C Write Error!");
+    return;
+  }
+
+  // Read section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.endTransmission(false);
+
+  byte received = Wire.requestFrom(0x68, 1);
+
+  if (received == 1 && Wire.available()) {
+    a = Wire.read();
+
+    Serial.print("PWR_MGMT_1 = 0x");
+    Serial.println(a, HEX);
+  }
+  else {
+    Serial.println("I2C Read Error!");
+  }
+
+ //set ranges
+//set Accelerometer 
+Wire.beginTransmission(0x68); // slave address mpu6050
+Wire.write(0x1C);// Accelerometer  register address
+Wire.write(0x10);
+byte e= Wire.endTransmission();
+
+  if (e != 0) {
+    Serial.println("ACCEL_CONFIG write is Not Success!");
+    return;
+  }
+  ///// set Gyroscope
+Wire.beginTransmission(0x68); // slave address mpu6050
+Wire.write(0x1B);// Gyroscope register address
+Wire.write(0x10);
+byte er = Wire.endTransmission();
+
+  if (er != 0) {
+    Serial.println("Gyroscope write is Not Success!");
+    return;
+  }
+
+  /// read section registors Accelerometer 
+   Wire.beginTransmission(0x68);
+  Wire.write(0x1C);
+  Wire.endTransmission(false);
+
+  byte rec = Wire.requestFrom(0x68, 1); /// you want data from the slave not register 
+
+  if (rec== 1 && Wire.available()) {
+    acc = Wire.read();
+
+    Serial.print("Accelerometer = 0x");
+    Serial.println(acc, HEX);
+  }
+  else {
+    Serial.println("Accelerometer Read Error!");
+  }
+ 
+ // read section Gyroscope 
+ Wire.beginTransmission(0x68);
+  Wire.write(0x1B);
+  Wire.endTransmission(false);
+
+  byte receive= Wire.requestFrom(0x68, 1);
+
+  if (receive == 1 && Wire.available()) {
+    gyo = Wire.read();
+
+    Serial.print(" Gyroscope= 0x");
+    Serial.println(gyo, HEX);
+  }
+  else {
+    Serial.println("Gyroscope Read Error!");
+  }
+
+
+
+
+}//set up 
+
+void loop() {
+
+
+}//loop
