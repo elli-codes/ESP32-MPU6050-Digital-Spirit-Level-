@@ -1,0 +1,184 @@
+
+#include <Wire.h>
+
+byte a;
+byte acc;
+byte gyo;
+ 
+void setup() {
+ pinMode(5, OUTPUT);
+  pinMode(18, OUTPUT);
+
+  Wire.begin(21, 22);
+  Serial.begin(115200);
+
+  // Write section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.write(0x01);
+
+  byte error = Wire.endTransmission();
+
+  if (error != 0) {
+    Serial.println("I2C Write Error!");
+    return;
+  }
+
+  // Read section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.endTransmission(false);
+
+  byte received = Wire.requestFrom(0x68, 1);
+
+  if (received == 1 && Wire.available()) {
+    a = Wire.read();
+
+    Serial.print("PWR_MGMT_1 = 0x");
+    Serial.println(a, HEX);
+  }
+  else {
+    Serial.println("I2C Read Error!");
+  }
+
+ //set ranges
+//set Accelerometer 
+Wire.beginTransmission(0x68); // slave address mpu6050
+Wire.write(0x1C);// Accelerometer  register address
+Wire.write(0x10);
+byte e= Wire.endTransmission();
+
+  if (e != 0) {
+    Serial.println("ACCEL_CONFIG write is Not Success!");
+    return;
+  }
+  ///// set Gyroscope
+Wire.beginTransmission(0x68); // slave address mpu050
+Wire.write(0x1B);// Gyroscope register address
+Wire.write(0x10);
+byte er = Wire.endTransmission();
+
+  if (er != 0) {
+    Serial.println("Gyroscope write is Not Success!");
+    return;
+  }
+
+  /// read section registors Accelerometer 
+   Wire.beginTransmission(0x68);
+  Wire.write(0x1C);
+  Wire.endTransmission(false);
+
+  byte rec = Wire.requestFrom(0x68, 1); /// you want data from the slave not register 
+
+  if (rec== 1 && Wire.available()) {
+    acc = Wire.read();
+
+    Serial.print("Accelerometer = 0x");
+    Serial.println(acc, HEX);
+  }
+  else {
+    Serial.println("Accelerometer Read Error!");
+  }
+ 
+ // read section Gyroscope 
+ Wire.beginTransmission(0x68);
+  Wire.write(0x1B);
+  Wire.endTransmission(false);
+
+  byte receive= Wire.requestFrom(0x68, 1);
+
+  if (receive == 1 && Wire.available()) {
+    gyo = Wire.read();
+
+    Serial.print(" Gyroscope= 0x");
+    Serial.println(gyo, HEX);
+  }
+  else {
+    Serial.println("Gyroscope Read Error!");
+  }
+
+
+
+
+}//set up 
+
+void loop() {
+  Wire.beginTransmission(0x68);   // slave address mpu6050
+  Wire.write(0x3B);               // ACCEL_XOUT_H : فقط آدرس شروع
+  Wire.endTransmission(false);    // Repeated START
+
+  byte received = Wire.requestFrom(0x68, 14);
+
+  if (received == 14 && Wire.available()) {
+
+    // ACCEL_XOUT_H and ACCEL_XOUT_L
+    byte axH = Wire.read();
+    byte axL = Wire.read();
+    int16_t ax = (axH << 8) | axL;
+
+    // ACCEL_YOUT_H and ACCEL_YOUT_L
+    byte ayH = Wire.read();
+    byte ayL = Wire.read();
+    int16_t ay = (ayH << 8) | ayL;
+
+    // ACCEL_ZOUT_H and ACCEL_ZOUT_L
+    byte azH = Wire.read();
+    byte azL = Wire.read();
+    int16_t az = (azH << 8) | azL;
+
+    // TEMP_OUT_H and TEMP_OUT_L (0x41 و 0x42)
+    byte tH = Wire.read();
+    byte tL = Wire.read();
+    int16_t temp = (tH << 8) | tL;
+
+    // GYRO_XOUT_H and GYRO_XOUT_L
+    byte gxH = Wire.read();
+    byte gxL = Wire.read();
+    int16_t gx = (gxH << 8) | gxL;
+
+    // GYRO_YOUT_H and GYRO_YOUT_L
+    byte gyH = Wire.read();
+    byte gyL = Wire.read();
+    int16_t gy = (gyH << 8) | gyL;
+
+    // GYRO_ZOUT_H and GYRO_ZOUT_L
+    byte gzH = Wire.read();
+    byte gzL = Wire.read();
+    int16_t gz = (gzH << 8) | gzL;
+
+    float axg = ax / 4096.0;
+    float ayg = ay / 4096.0;
+    float azg = az / 4096.0;
+
+    float gxd = gx / 32.8;
+    float gyd = gy / 32.8;
+    float gzd = gz / 32.8;
+
+    float tempC = temp / 340.0 + 36.53;
+
+    float total = sqrt(axg * axg + ayg * ayg + azg * azg);
+
+    
+    Serial.print("axg="); Serial.print(axg, 2);
+    Serial.print("  ayg="); Serial.println(ayg, 2);
+        float threshold = 0.2;
+
+    if (ayg > threshold) {
+      digitalWrite(5, HIGH);
+      digitalWrite(18, LOW);
+    }
+    else if (ayg < -threshold) {
+      digitalWrite(5, LOW);
+      digitalWrite(18, HIGH);
+    }
+    
+
+
+  }//receive
+  else {
+    Serial.println("MPU6050 Read Error!");
+  }
+
+  delay(50);
+  
+}//loop 
