@@ -1,0 +1,41 @@
+
+#include <Wire.h>
+
+byte a;
+
+void setup() {
+  Wire.begin(21, 22);
+  Serial.begin(115200);
+
+  // Write section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.write(0x01);
+
+  byte error = Wire.endTransmission();
+
+  if (error != 0) {
+    Serial.println("I2C Write Error!");
+    return;
+  }
+
+  // Read section
+  Wire.beginTransmission(0x68);
+  Wire.write(0x6B);
+  Wire.endTransmission(false);
+
+  byte received = Wire.requestFrom(0x68, 1);
+
+  if (received == 1 && Wire.available()) {
+    a = Wire.read();
+
+    Serial.print("PWR_MGMT_1 = 0x");
+    Serial.println(a, HEX);
+  }
+  else {
+    Serial.println("I2C Read Error!");
+  }
+}
+
+void loop() {
+}
