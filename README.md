@@ -256,4 +256,4 @@ Open the Serial Monitor at **115200 baud** to see `axg` and `ayg`.
 
 MIT License. See [LICENSE](LICENSE).
 
-> 🎥 **Video tutorial:** `[ ]`
+> 🎥 **Video tutorial:** `[ https://youtu.be/TbHxijNXRMk ]`
